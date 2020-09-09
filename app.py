@@ -4,7 +4,6 @@ import dash
 import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 from sqlalchemy import create_engine, text
 
@@ -19,18 +18,15 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 @app.callback(
     dash.dependencies.Output('example-graph', 'figure'),
     [dash.dependencies.Input('date-dropdown', 'value')])
-def update_output(yyyymmdd):
-    print('update_output ' + yyyymmdd)
+def create_graph(yyyymmdd):
     with engine.connect() as conn:
-        result = conn.execute(text('SELECT csv FROM my_data order by yyyymmdd asc'))
-        print(result)
-
+        # Select record matching date
         sel = my_data.select().where(my_data.c.yyyymmdd == yyyymmdd)
         csv = conn.execute(sel).fetchone()[1]
+        # Read string as Pandas dataframe
         strbuf = io.StringIO(csv)
         csv_df = pd.read_csv(strbuf)
-        print(csv_df)
-
+        # Create a scatter plot with data from the dataframe
         return go.Figure(data=go.Scatter(x=csv_df.x, y=csv_df.y, mode='markers'))
 
 
@@ -57,7 +53,7 @@ def app_layout():
         html.Div(id='dd-output-container'),
         dcc.Graph(
             id='example-graph',
-            figure=fig
+            figure=None
         ),
     ])
 
@@ -67,16 +63,6 @@ def get_dates():
         result = conn.execute(text('SELECT distinct(yyyymmdd) FROM my_data order by yyyymmdd asc'))
         return [row[0] for row in result]
 
-
-# assume you have a "long-form" data frame
-# see https://plotly.com/python/px-arguments/ for more options
-df = pd.DataFrame({
-    "Fruit": ["Apples", "Oranges", "Bananas", "Apples", "Oranges", "Bananas"],
-    "Amount": [4, 1, 2, 2, 4, 5],
-    "City": ["SF", "SF", "SF", "Montreal", "Montreal", "Montreal"]
-})
-
-fig = px.bar(df, x="Fruit", y="Amount", color="City", barmode="group")
 
 app.layout = app_layout()
 
