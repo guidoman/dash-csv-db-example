@@ -5,13 +5,12 @@ import dash_core_components as dcc
 import dash_html_components as html
 import pandas as pd
 import plotly.graph_objects as go
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
-from my_db import my_data, db_file_name
+from my_db import my_data, engine
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
-engine = create_engine(f'sqlite:///{db_file_name}', echo=True)
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 
 
@@ -27,7 +26,9 @@ def create_graph(yyyymmdd):
         strbuf = io.StringIO(csv)
         csv_df = pd.read_csv(strbuf)
         # Create a scatter plot with data from the dataframe
-        return go.Figure(data=go.Scatter(x=csv_df.x, y=csv_df.y, mode='markers'))
+        return go.Figure(data=go.Scatter(x=csv_df.x,
+                                         y=csv_df.y,
+                                         mode='markers'))
 
 
 def app_layout():
